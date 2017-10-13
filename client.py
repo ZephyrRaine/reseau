@@ -14,13 +14,27 @@ class Receiver(threading.Thread):
     #Receive datas (blocking) and print them ater decoding (bytes => string)
     def run(self):
         while True:
-            data = self.socket.recv(64).decode()
-            if data:
-                print(data)
-                self.client.printMsg(data)
+            try:
+                data = self.socket.recv(64)
+            except ConnectionError:
+                print("Terminating connection thread")
+                self.client.close()
+                break
+            else:
+                if data:
+                    msg = data.decode()
+                    print(msg)
+                    self.client.printMsg(msg)
+
+
 
 class Client():
     def __init__(self, address, port, handle):
+        
+        ### 
+        # On peut binder le client si on veut imposer une adresse/port 
+        ###
+        
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while self.socket.connect_ex((address,port))!=0:
             print("Waiting for server")
@@ -60,6 +74,8 @@ class Client():
     
         ###
     
+    def close(self):
+        self.socket.close()
     
     def sendMsg(self, message):
         self.socket.sendall(message.encode())

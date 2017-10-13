@@ -34,7 +34,7 @@ class ClientConnection(threading.Thread):
             try:
                 data = self.socket.recv(64)
             except ConnectionError:
-                print("Terminating connection thread")
+                print("Terminating client connection thread with ", self.handle, self.socket.family)
                 self.server.removeClient(self)
                 break
             else:
@@ -46,6 +46,7 @@ class Server:
     def __init__(self, port):
         listeningSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         address = ("localhost", port)
+
         listeningSocket.bind(address)
         Listener(self, listeningSocket)
         self.openConnections = list()
@@ -57,6 +58,7 @@ class Server:
 
     def removeClient(self, connection):
         print("Removing ", connection.handle)
+        connection.socket.close()
         self.openConnections.remove(connection)
 
     #Forwards messages to all clients (including sender)
